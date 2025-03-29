@@ -1,0 +1,11 @@
+#!/usr/bin/env ruby
+
+require "rinker"
+require "optparse"
+
+opt = OptionParser.new
+options = {}
+opt.on("-o", "--objects[=VAL]") { |v| options[:dest] = v }
+object_files = ARGV
+
+Rinker::Linker.link(object_files, **options)

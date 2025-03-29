@@ -1,0 +1,2 @@
+module Rinker::ELF
+end
