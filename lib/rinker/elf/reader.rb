@@ -1,6 +1,4 @@
-class Array
-  def to_hex = (map { |n| n.to_s(16).rjust(2, "0") }.reverse.join)
-end
+require "stringio"
 
 class Rinker::ELF::Reader
   attr_reader :binary, :file
@@ -10,7 +8,7 @@ class Rinker::ELF::Reader
    
   def initialize(file)
     @file = file
-    @binary = File.open(file, "rb").read.unpack("C*")
+    @binary = File.open(file, "rb").read
   end
 
   def to_hash
@@ -20,14 +18,13 @@ class Rinker::ELF::Reader
       offset: 0,
       size: header[:size],
       type: type,
-      # symbol_table: symbol_table,
       section_table: section_table,
     }
   end
 
   private
   def type
-    case binary[16..17].first
+    case b2i(binary[16..17])
     when 0 then "NONE"
     when 1 then "REL"
     when 2 then "EXEC"
@@ -37,60 +34,47 @@ class Rinker::ELF::Reader
     end
   end
   def arch
-    case ar = binary[18..19].to_hex.to_i(16)
+    case ar = b2i(binary[18..19])
     when 0x3E then "x64"
-    else
-      raise Error, "Unsupported architecture: #{ar}"
+    else raise Error, "Unsupported architecture: #{ar}"
     end
   end
   def header
-    @header ||= {
-      ident: binary[0..15],
-      type:,
-      arch:,
-      version: binary[20..23].to_hex.to_i(16),
-      entry: binary[24..31].to_hex.to_i(16),
-      phoffset: binary[32..39].to_hex.to_i(16),
-      shoffset: binary[40..47].to_hex.to_i(16),
-      flags: binary[48..51].to_hex.to_i(16),
-      ehsize: binary[52..53].to_hex.to_i(16),
-      phsize: binary[54..55].to_hex.to_i(16),
-      phnum:  binary[56..57].to_hex.to_i(16),
-      shentsize: binary[58..59].to_hex.to_i(16),
-      shnum: binary[60..61].to_hex.to_i(16),
-      shstrndx: binary[62..63].to_hex.to_i(16),
-    }
+    return @header unless @header.nil?
+    ident = binary[0..15]
+    version, entry, phoffset, shoffset, flags, ehsize, phsize, phnum, shentsize, shnum, shstrndx = binary[20..63].unpack("LQ3LS6")
+    @header = { ident:, type:, arch:, version:, entry:, phoffset:, shoffset:, flags:, ehsize:, phsize:, phnum:, shentsize:, shnum:, shstrndx: }
   end
   def section_table
-    offset = section_header[header[:shstrndx]][:offset]
-    size = section_header[header[:shstrndx]][:size]
+    offset = section_headers[header[:shstrndx]][:offset]
+    size = section_headers[header[:shstrndx]][:size]
     section_names = {}
     index = 0
-    binary[offset..(offset + size)].pack("C*").split("\0").map do |name|
+    binary[offset..(offset + size)].split("\0").map do |name|
       section_names[name.to_sym] = index
       index += 1
     end
     section_names
   end
 
-  def section_header
+  def section_headers
+    return @section_headers unless @section_headers.nil?
     @section_headers = []
-    binary[header[:shoffset]..-1].each_slice(0x40).each_with_index do |bin, i|
-      @section_headers << {
-        name: bin[0..3].to_hex.to_i(16),
-        type: bin[4..7].to_hex.to_i(16),
-        flags: bin[8..15].to_hex.to_i(16),
-        addr: bin[16..23].to_hex.to_i(16),
-        offset: bin[24..31].to_hex.to_i(16),
-        size: bin[32..39].to_hex.to_i(16),
-        link: bin[40..43].to_hex.to_i(16),
-        info: bin[44..47].to_hex.to_i(16),
-        addralign: bin[48..55].to_hex.to_i(16),
-        entsize: bin[56..63].to_hex.to_i(16),
-      }
+    b = StringIO.new(binary[header[:shoffset]..])
+    while bin = b.read(0x40)
+      name, type, flags, addr, offset, size, link, info, addralign, entsize = bin.unpack("Z4S2L3S2L3")
+      @section_headers << { name:, type:, flags:, addr:, offset:, size:, link:, info:, addralign:, entsize: }
     end
     @section_headers
   end
 
+  def b2i(bin)
+    case bin.size
+    when 1 then bin.unpack("C").first
+    when 2 then bin.unpack("S").first
+    when 4 then bin.unpack("L").first
+    when 8 then bin.unpack("Q").first
+    else raise Error, "Unsupported binary size: #{bin.size}"
+    end
+  end
 end
-
