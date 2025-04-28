@@ -20,5 +20,14 @@ class Rinker::ELF::ReaderTest < Test::Unit::TestCase
     assert_equal @reader[:header][:shstrndx], 7
   end
 
+  test "read section header table" do
+    assert_equal @reader[:section_table][:".null"], 0
+    assert_equal @reader[:section_table][:".symtab"], 1
+    assert_equal @reader[:section_table][:".strtab"], 2
+    assert_equal @reader[:section_table][:".shstrtab"], 3
+    assert_equal @reader[:section_table][:".text"], 4
+    assert_equal @reader[:section_table][:".data"], 5
+    assert_equal @reader[:section_table][:".bss"], 6
+    assert_equal @reader[:section_table][:".note.gnu.property"], 7
   end
 end

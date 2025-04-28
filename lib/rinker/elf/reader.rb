@@ -18,7 +18,7 @@ class Rinker::ELF::Reader
       offset: 0,
       size: header[:size],
       type: type,
-      section_table: section_table,
+      section_table: shstrtab,
     }
   end
 
@@ -45,16 +45,24 @@ class Rinker::ELF::Reader
     version, entry, phoffset, shoffset, flags, ehsize, phsize, phnum, shentsize, shnum, shstrndx = binary[20..63].unpack("LQ3LS6")
     @header = { ident:, type:, arch:, version:, entry:, phoffset:, shoffset:, flags:, ehsize:, phsize:, phnum:, shentsize:, shnum:, shstrndx: }
   end
-  def section_table
+
+  def shstrtab
     offset = section_headers[header[:shstrndx]][:offset]
     size = section_headers[header[:shstrndx]][:size]
     section_names = {}
     index = 0
     binary[offset..(offset + size)].split("\0").map do |name|
+      name = ".null" if name == ""
       section_names[name.to_sym] = index
       index += 1
     end
     section_names
+  end
+
+  def symtab
+    offset = section_headers[shstrtab[:".symtab"]][:offset]
+    size = section_headers[shstrtab[:".symtab"]][:size]
+    binary[offset..(offset + size)]
   end
 
   def section_headers
@@ -62,8 +70,8 @@ class Rinker::ELF::Reader
     @section_headers = []
     b = StringIO.new(binary[header[:shoffset]..])
     while bin = b.read(0x40)
-      name, type, flags, addr, offset, size, link, info, addralign, entsize = bin.unpack("Z4S2L3S2L3")
-      @section_headers << { name:, type:, flags:, addr:, offset:, size:, link:, info:, addralign:, entsize: }
+      name, type, flags, addr, offset, size, link, info, addralign, entsize = bin.unpack("L2Q4L2Q4")
+      @section_headers << { name: [name].pack("L"), type:, flags:, addr:, offset:, size:, link:, info:, addralign:, entsize: }
     end
     @section_headers
   end
