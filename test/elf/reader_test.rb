@@ -1,33 +1,53 @@
 require "test_helper"
 
 class Rinker::ELF::ReaderTest < Test::Unit::TestCase
-  def setup = @reader = Rinker::ELF::Reader.new("test/fixtures/plus.o").to_hash
-
-  test "read elf header" do
-    assert_equal @reader[:header][:type], "REL"
-    assert_equal @reader[:header][:arch], "x64"
-    assert_equal @reader[:header][:ident], "\x7FELF\x02\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00"
-    assert_equal @reader[:header][:version], 1
-    assert_equal @reader[:header][:entry], 0
-    assert_equal @reader[:header][:phoffset], 0
-    assert_equal @reader[:header][:shoffset], 288
-    assert_equal @reader[:header][:flags], 0
-    assert_equal @reader[:header][:ehsize], 64
-    assert_equal @reader[:header][:phsize], 0
-    assert_equal @reader[:header][:phnum], 0
-    assert_equal @reader[:header][:shentsize], 64
-    assert_equal @reader[:header][:shnum], 8
-    assert_equal @reader[:header][:shstrndx], 7
+  def setup
+    @reader = Rinker::ELF::Reader.new("test/fixtures/plus.o")
+    @reader.read
   end
 
-  test "read section header table" do
-    assert_equal @reader[:section_table][:".null"], 0
-    assert_equal @reader[:section_table][:".symtab"], 1
-    assert_equal @reader[:section_table][:".strtab"], 2
-    assert_equal @reader[:section_table][:".shstrtab"], 3
-    assert_equal @reader[:section_table][:".text"], 4
-    assert_equal @reader[:section_table][:".data"], 5
-    assert_equal @reader[:section_table][:".bss"], 6
-    assert_equal @reader[:section_table][:".note.gnu.property"], 7
+  test "read elf header" do
+    elf_header = @reader.elf_header
+    assert_equal elf_header.type, "REL"
+    assert_equal elf_header.arch, "x64"
+    assert_equal elf_header.ident, "\x7FELF\x02\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+    assert_equal elf_header.version, 1
+    assert_equal elf_header.entry, 0
+    assert_equal elf_header.phoffset, 0
+    assert_equal elf_header.shoffset, 288
+    assert_equal elf_header.flags, 0
+    assert_equal elf_header.ehsize, 64
+    assert_equal elf_header.phsize, 0
+    assert_equal elf_header.phnum, 0
+    assert_equal elf_header.shentsize, 64
+    assert_equal elf_header.shnum, 8
+    assert_equal elf_header.shstrndx, 7
+  end
+
+  test "read section header" do
+    headers = @reader.section_headers
+    assert_equal headers[0].name.unpack("L").first, 0
+    assert_equal headers[1].name.unpack("L").first, 27
+    assert_equal headers[2].name.unpack("L").first, 33
+    assert_equal headers[3].name.unpack("L").first, 39
+    assert_equal headers[4].name.unpack("L").first, 44
+    assert_equal headers[5].name.unpack("L").first, 1
+    assert_equal headers[6].name.unpack("L").first, 9
+    assert_equal headers[7].name.unpack("L").first, 17
+  end
+
+  test "read shstrtab sections" do
+    shstrtab = @reader.sections.shstrtab
+    binary = @reader.sections.shstrtab.binary
+
+    assert_equal shstrtab.names[0], :".null"
+    assert_equal shstrtab.names[1], :".symtab"
+    assert_equal shstrtab.names[2], :".strtab"
+    assert_equal shstrtab.names[3], :".shstrtab"
+    assert_equal shstrtab.names[4], :".text"
+    assert_equal shstrtab.names[5], :".data"
+    assert_equal shstrtab.names[6], :".bss"
+    assert_equal binary[39...43], ".bss"
+    assert_equal shstrtab.names[7], :".note.gnu.property"
   end
 end

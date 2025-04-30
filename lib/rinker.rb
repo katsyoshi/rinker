@@ -3,7 +3,6 @@
 require_relative "rinker/version"
 require_relative "rinker/elf"
 require_relative "rinker/elf/reader"
-require_relative "rinker/elf/writer"
 
 module Rinker
   class Error < StandardError; end
