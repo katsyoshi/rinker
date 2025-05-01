@@ -1,2 +1,2 @@
-class Rinker::ELF::Section
+module Rinker::ELF::Section
 end

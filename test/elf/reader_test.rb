@@ -26,28 +26,30 @@ class Rinker::ELF::ReaderTest < Test::Unit::TestCase
 
   test "read section header" do
     headers = @reader.section_headers
-    assert_equal headers[0].name.unpack("L").first, 0
-    assert_equal headers[1].name.unpack("L").first, 27
-    assert_equal headers[2].name.unpack("L").first, 33
-    assert_equal headers[3].name.unpack("L").first, 39
-    assert_equal headers[4].name.unpack("L").first, 44
-    assert_equal headers[5].name.unpack("L").first, 1
-    assert_equal headers[6].name.unpack("L").first, 9
-    assert_equal headers[7].name.unpack("L").first, 17
+    assert_equal headers[0].name, 0
+    assert_equal headers[1].name, 27
+    assert_equal headers[2].name, 33
+    assert_equal headers[3].name, 39
+    assert_equal headers[4].name, 44
+    assert_equal headers[5].name, 1
+    assert_equal headers[6].name, 9
+    assert_equal headers[7].name, 17
   end
 
   test "read shstrtab sections" do
     shstrtab = @reader.sections.shstrtab
     binary = @reader.sections.shstrtab.binary
 
-    assert_equal shstrtab.names[0], :".null"
-    assert_equal shstrtab.names[1], :".symtab"
-    assert_equal shstrtab.names[2], :".strtab"
-    assert_equal shstrtab.names[3], :".shstrtab"
-    assert_equal shstrtab.names[4], :".text"
-    assert_equal shstrtab.names[5], :".data"
-    assert_equal shstrtab.names[6], :".bss"
-    assert_equal binary[39...43], ".bss"
+    assert_equal shstrtab[0], :".null"
+    assert_equal binary[0..].split(/\0/).first, ""
+    assert_equal shstrtab[1], :".symtab"
+    assert_equal shstrtab[2], :".strtab"
+    assert_equal shstrtab[3], :".shstrtab"
+    assert_equal shstrtab[4], :".text"
+    assert_equal binary[27..].split(/\0/).first, ".text"
+    assert_equal shstrtab[5], :".data"
+    assert_equal shstrtab[6], :".bss"
+    assert_equal binary[39..].split(/\0/).first, ".bss"
     assert_equal shstrtab.names[7], :".note.gnu.property"
   end
 end

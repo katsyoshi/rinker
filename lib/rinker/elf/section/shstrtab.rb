@@ -10,4 +10,6 @@ class Rinker::ELF::Section::ShStrTab
   end
         
   def parse! = @names ||= @binary.split("\0").map { (it == "" ? ".null" : it).to_sym }
+  def [](index) = names[index]
+  def each(&block) = names.each(&block)
 end

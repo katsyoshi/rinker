@@ -9,8 +9,5 @@ class Rinker::ELF::Section::Header
     parse!
   end
 
-  def parse!
-    (@name, @type, @flags, @addr, @offset, @size, @link, @info, @addralign, @entsize = binary.unpack("L2Q4L2Q2"))
-    @name = [name].pack("L")
-  end
+  def parse! = (@name, @type, @flags, @addr, @offset, @size, @link, @info, @addralign, @entsize = binary.unpack("L2Q4L2Q2"))
 end
