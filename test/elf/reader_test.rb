@@ -52,4 +52,16 @@ class Rinker::ELF::ReaderTest < Test::Unit::TestCase
     assert_equal binary[39..].split(/\0/).first, ".bss"
     assert_equal shstrtab.names[7], :".note.gnu.property"
   end
+
+  test "read symtab section" do
+    symbols = @reader.sections.symtab.symbols
+    assert_equal symbols.size, 2
+    main = symbols.last
+    assert_equal main.name, 1
+    assert_equal main.info, 16
+    assert_equal main.other, 0
+    assert_equal main.shndx, 1
+    assert_equal main.value, 0
+    assert_equal main.size, 0
+  end
 end

@@ -1,19 +1,13 @@
-class Rinker::ELF::Section::SymbolTable
+require_relative "../section"
+class Rinker::ELF::Section::SymTab
   attr_reader :binary
-  attr_reader :symbols
+  attr_reader :name, :info, :other, :shndx, :value, :size
         
-  def initialize(bin)
-    @binary = bin
-    @symbols = []
+  def initialize(binary:)
+    @binary = binary
+    parse!
   end
         
-  def parse!
-    binary.split("\0").each do |symbol|
-      name = symbol == "" ? ".null" : symbol
-      @symbols << name.to_sym
-    end
-  end
-        
-  def [](index) = symbols[index]
-  def each(&block) = symbols.each(&block)
+  def parse! = (@name, @info, @other, @shndx, @value, @size = parse(@binary))
+  def parse(bin) = bin.unpack("LC2SQ2")
 end
