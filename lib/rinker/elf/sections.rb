@@ -1,3 +1,4 @@
+require_relative "section/bss"
 require_relative "section/shstrtab"
 require_relative "symbols"
 
@@ -25,6 +26,7 @@ class Rinker::ELF::Sections
       case name
       when :".null" then @null = Rinker::ELF::Section::Null.new(binary: binary[offset...end_offset])
       when :".symtab" then @symtab = Rinker::ELF::Symbols.new(binary: binary[offset...end_offset])
+      when :".bss" then @bss = Rinker::ELF::Section::BSS.new(binary: binary[offset...end_offset])
       end
     end
   end

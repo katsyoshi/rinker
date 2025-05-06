@@ -64,4 +64,9 @@ class Rinker::ELF::ReaderTest < Test::Unit::TestCase
     assert_equal main.value, 0
     assert_equal main.size, 0
   end
+
+  test "read bss section" do
+    bss = @reader.sections.bss
+    assert_equal bss.binary.size, 0
+  end
 end
