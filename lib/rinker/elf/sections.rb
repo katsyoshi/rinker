@@ -1,6 +1,7 @@
 require_relative "section/bss"
 require_relative "section/data"
 require_relative "section/shstrtab"
+require_relative "section/strtab"
 require_relative "symbols"
 
 class Rinker::ELF::Sections
