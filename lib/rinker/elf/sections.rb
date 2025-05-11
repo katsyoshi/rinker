@@ -2,6 +2,7 @@ require_relative "section/bss"
 require_relative "section/data"
 require_relative "section/shstrtab"
 require_relative "section/strtab"
+require_relative "section/text"
 require_relative "symbols"
 
 class Rinker::ELF::Sections
@@ -24,12 +25,14 @@ class Rinker::ELF::Sections
       offset = header.offset
       size = header.size
       end_offset = offset + size
+      chunk = binary[offset...end_offset]
 
       case name
-      when :".null" then @null = Rinker::ELF::Section::Null.new(binary: binary[offset...end_offset])
-      when :".symtab" then @symtab = Rinker::ELF::Symbols.new(binary: binary[offset...end_offset])
-      when :".bss" then @bss = Rinker::ELF::Section::BSS.new(binary: binary[offset...end_offset])
-      when :".data" then @data = Rinker::ELF::Section::Data.new(binary: binary[offset...end_offset])
+      when :".null" then @null = Rinker::ELF::Section::Null.new(binary: chunk)
+      when :".symtab" then @symtab = Rinker::ELF::Symbols.new(binary: chunk)
+      when :".bss" then @bss = Rinker::ELF::Section::BSS.new(binary: chunk)
+      when :".data" then @data = Rinker::ELF::Section::Data.new(binary: chunk)
+      when :".text" then @text = Rinker::ELF::Section::Text.new(binary: chunk)
       end
     end
   end

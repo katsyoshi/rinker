@@ -75,8 +75,8 @@ class Rinker::ELF::ReaderTest < Test::Unit::TestCase
     assert_equal data.size, 0
   end
 
-  test "read note section" do
-    note = @reader.sections.note
-    assert_equal note.size, 48
+  test "read text section" do
+    text = @reader.sections.text
+    assert_equal text.size, 50
   end
 end
